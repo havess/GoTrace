@@ -1,0 +1,5 @@
+Physically based renderer based on the 'Physically Based Rendering From Theory To Implementation', its a long book, this will be a WIP for a while...
+
+Entirely written by me, entirely in Go.
+
+Currently working on: Basic geometry and math
