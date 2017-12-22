@@ -56,6 +56,50 @@ func (b Bounds3) Volume() float64 {
 	return d.X * d.Y * d.Z
 }
 
+// returns index of the longest of the three axis
+func (b Bounds3) MaxExtent() int {
+	d := b.Diagonal()
+	if d.X > d.Y && d.X > d.Z {
+		return 0
+	} else if d.Y > d.Z {
+		return 1
+	} else {
+		return 2
+	}
+}
+
+// lerp by the corners of the box
+func (b Bounds3) Lerp(t amath.Point3) amath.Point3 {
+	x := amath.Lerp(t.X, b.pMin.X, b.pMax.X)
+	y := amath.Lerp(t.Y, b.pMin.Y, b.pMax.Y)
+	z := amath.Lerp(t.Z, b.pMin.Z, b.pMax.Z)
+	return amath.Point3{X: x, Y: y, Z: z}
+}
+
+// returns pos of point relative to box coords (0,0,0) is at pMin, (1,1,1) is at pMax
+func (b Bounds3) Offset(p amath.Point3) amath.Vec3 {
+	o := p.SubtractP(b.pMin)
+	if b.pMax.X > b.pMin.X {
+		o.X /= b.pMax.X - b.pMin.X
+	}
+	if b.pMax.Y > b.pMin.Y {
+		o.Y /= b.pMax.Y - b.pMin.Y
+	}
+	if b.pMax.Z > b.pMin.Z {
+		o.Z /= b.pMax.Z - b.pMin.Z
+	}
+	return o
+}
+
+func (b Bounds3) BoundingSphere() (amath.Point3, float64) {
+	center := (b.pMin.AddP(b.pMax)).Divide(2)
+	var radius float64
+	if b.Contains(center) {
+		radius = amath.DistanceP3(center, b.pMax)
+	}
+	return center, radius
+}
+
 func NewEmptyBounds3() Bounds3 {
 	ret := Bounds3{}
 	min := float64(math.MinInt32)
@@ -138,6 +182,44 @@ func (b Bounds2) Diagonal() amath.Vec2 {
 func (b Bounds2) SurfaceArea() float64 {
 	d := b.Diagonal()
 	return d.X * d.Y
+}
+
+// returns index of the longest of the three axis
+func (b Bounds2) MaxExtent() int {
+	d := b.Diagonal()
+	if d.X > d.Y {
+		return 0
+	} else {
+		return 1
+	}
+}
+
+// lerp by the corners of the box
+func (b Bounds2) Lerp(t amath.Point2) amath.Point2 {
+	x := amath.Lerp(t.X, b.pMin.X, b.pMax.X)
+	y := amath.Lerp(t.Y, b.pMin.Y, b.pMax.Y)
+	return amath.Point2{X: x, Y: y}
+}
+
+// returns pos of point relative to box coords (0,0,0) is at pMin, (1,1,1) is at pMax
+func (b Bounds2) Offset(p amath.Point2) amath.Vec2 {
+	o := p.SubtractP(b.pMin)
+	if b.pMax.X > b.pMin.X {
+		o.X /= b.pMax.X - b.pMin.X
+	}
+	if b.pMax.Y > b.pMin.Y {
+		o.Y /= b.pMax.Y - b.pMin.Y
+	}
+	return o
+}
+
+func (b Bounds2) BoundingCircle() (amath.Point2, float64) {
+	center := (b.pMin.AddP(b.pMax)).Divide(2)
+	var radius float64
+	if b.Contains(center) {
+		radius = amath.DistanceP2(center, b.pMax)
+	}
+	return center, radius
 }
 
 func NewEmptyBounds2() Bounds2 {
