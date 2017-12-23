@@ -121,7 +121,7 @@ func MaxP2(p1, p2 Point2) Point2 {
 	return Point2{math.Max(p1.X, p2.X), math.Max(p1.Y, p2.Y)}
 }
 
-func FloorP3(p Point3) Point3 {
+func FloorP3(p *Point3) Point3 {
 	return Point3{math.Floor(p.X), math.Floor(p.Y), math.Floor(p.Z)}
 }
 
@@ -129,7 +129,7 @@ func FloorP2(p Point2) Point2 {
 	return Point2{math.Floor(p.X), math.Floor(p.Y)}
 }
 
-func CeilP3(p Point3) Point3 {
+func CeilP3(p *Point3) Point3 {
 	return Point3{math.Ceil(p.X), math.Ceil(p.Y), math.Ceil(p.Z)}
 }
 
@@ -137,7 +137,7 @@ func CeilP2(p Point2) Point2 {
 	return Point2{math.Ceil(p.X), math.Ceil(p.Y)}
 }
 
-func AbsP3(p Point3) Point3 {
+func AbsP3(p *Point3) Point3 {
 	return Point3{math.Abs(p.X), math.Abs(p.Y), math.Abs(p.Z)}
 }
 

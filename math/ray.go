@@ -50,7 +50,7 @@ func NewRayDiff(p Point3, d Vec3, tMax, time float64, medium *media.Medium) RayD
 }
 
 // update differential rays for estimated sampling of 's'
-func (r RayDifferential) ScaleRayDifferentials(s float64) {
+func (r *RayDifferential) ScaleRayDifferentials(s float64) {
 	o := r.R.Orig
 	d := r.R.Dir
 
