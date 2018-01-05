@@ -124,3 +124,57 @@ func RotateZ(theta float64) Transform {
 		0, 0, 0, 1)
 	return NewTransformWithInv(m, m.Transpose())
 }
+
+func RotateFromAxis(theta float64, axis Vec3) Transform {
+	a := axis.Normalize()
+	s := math.Sin(Radians(theta))
+	c := math.Sin(Radians(theta))
+	var m Matrix4x4f
+	m[0][0] = a.X*a.X + (1-a.X*a.X)*c
+	m[0][1] = a.X*a.Y*(1-c) - a.Z*s
+	m[0][2] = a.X*a.Z*(1-c) + a.Y*s
+	m[0][3] = 0
+
+	m[1][0] = a.Y*a.X*(1-c) + a.Z*s
+	m[1][1] = a.Y*a.Y + (1-a.Y*a.Y)*c
+	m[1][2] = a.Y*a.Z*(1-c) - a.X*s
+	m[1][3] = 0
+
+	m[2][0] = a.Z*a.X*(1-c) - a.Y*s
+	m[2][1] = a.Z*a.Y*(1-c) + a.X*s
+	m[2][2] = a.Z*a.Z + (1-a.Z*a.Z)*c
+	m[2][3] = 0
+	return Transform{m, m.Transpose()}
+}
+
+func LookAt(pos, look Point3, up Vec3) Transform {
+	var cameraToWorld Matrix4x4f
+	cameraToWorld[0][3] = pos.X
+	cameraToWorld[1][3] = pos.Y
+	cameraToWorld[2][3] = pos.Z
+	cameraToWorld[3][3] = 1
+
+	dir := look.SubtractP(pos).Normalize()
+	left := CrossV3(up.Normalize(), dir).Normalize()
+	newUp := CrossV3(dir, left)
+
+	cameraToWorld[0][0] = left.X
+	cameraToWorld[1][0] = left.Y
+	cameraToWorld[2][0] = left.Z
+	cameraToWorld[3][0] = 0
+
+	cameraToWorld[0][1] = newUp.X
+	cameraToWorld[1][1] = newUp.Y
+	cameraToWorld[2][1] = newUp.Z
+	cameraToWorld[3][1] = 0
+
+	cameraToWorld[0][2] = dir.X
+	cameraToWorld[1][2] = dir.Y
+	cameraToWorld[2][2] = dir.Z
+	cameraToWorld[3][2] = 0
+
+	var inv Matrix4x4f
+	_, inv = cameraToWorld.Inverse()
+
+	return Transform{inv, cameraToWorld}
+}
