@@ -4,9 +4,10 @@ func inRange(i, j int) bool {
 	return i < 4 && j < 4
 }
 
+// Matrices should be treated as row-major i.e [1][0] is row 1 column 0
 type Matrix4x4f [4][4]float64
 
-func NewMat4x4f() Matrix4x4f {
+func New4x4IDMat() Matrix4x4f {
 	return Mat4x4fID
 }
 
