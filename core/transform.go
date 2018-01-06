@@ -1,11 +1,58 @@
-package math
+package core
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 // Transform represents transform matrices and their inverses
 type Transform struct {
 	//this is pretty memory heavy, if used naively may run into issues 8byte*16 * 2 is a lot of mem
 	m, mInv Matrix4x4f
+}
+
+func (t Transform) ApplyP(p Point3) Point3 {
+	x, y, z := p.X, p.Y, p.Z
+	xp := t.m[0][0]*x + t.m[0][1]*y + t.m[0][2]*z + t.m[0][3]
+	yp := t.m[1][0]*x + t.m[1][1]*y + t.m[1][2]*z + t.m[1][3]
+	zp := t.m[2][0]*x + t.m[2][1]*y + t.m[2][2]*z + t.m[2][3]
+	wp := t.m[3][0]*x + t.m[3][1]*y + t.m[3][2]*z + t.m[3][3]
+	if wp == 1 {
+		return Point3{xp, yp, zp}
+	}
+	return Point3{xp, yp, zp}.Divide(wp)
+}
+
+func (t Transform) ApplyPE(p Point3) (Point3, Vec3) {
+	var err Vec3
+	var ret Point3
+
+	x, y, z := p.X, p.Y, p.Z
+	// Compute transformed coordinates
+	xp := t.m[0][0]*x + t.m[0][1]*y + t.m[0][2]*z + t.m[0][3]
+	yp := t.m[1][0]*x + t.m[1][1]*y + t.m[1][2]*z + t.m[1][3]
+	zp := t.m[2][0]*x + t.m[2][1]*y + t.m[2][2]*z + t.m[2][3]
+	wp := t.m[3][0]*x + t.m[3][1]*y + t.m[3][2]*z + t.m[3][3]
+
+	// Compute absolute error for transformed point
+	xAbsSum := (math.Abs(t.m[0][0]*x) + math.Abs(t.m[0][1]*y) +
+		math.Abs(t.m[0][2]*z) + math.Abs(t.m[0][3]))
+	yAbsSum := (math.Abs(t.m[1][0]*x) + math.Abs(t.m[1][1]*y) +
+		math.Abs(t.m[1][2]*z) + math.Abs(t.m[1][3]))
+	zAbsSum := (math.Abs(t.m[2][0]*x) + math.Abs(t.m[2][1]*y) +
+		math.Abs(t.m[2][2]*z) + math.Abs(t.m[2][3]))
+
+	err = Vec3{xAbsSum, yAbsSum, zAbsSum}.Multiply(Gamma(3))
+	if wp == 0 {
+		fmt.Print("CANNOT DIVIDE BY 0")
+		return ret, err
+	}
+	if wp == 1 {
+		ret = Point3{xp, yp, zp}
+	} else {
+		ret = Point3{xp, yp, zp}.Divide(wp)
+	}
+	return ret, err
 }
 
 // ApplyV applies the transform to a vec, we assume homogenous behavior i.e weight of 0
@@ -14,6 +61,44 @@ func (t Transform) ApplyV(v Vec3) Vec3 {
 	return Vec3{t.m[0][0]*x + t.m[0][1]*y + t.m[0][2]*z,
 		t.m[1][0]*x + t.m[1][1]*y + t.m[1][2]*z,
 		t.m[2][0]*x + t.m[2][1]*y + t.m[2][2]*z}
+}
+
+/* to maintain orthogonality normals must be transformed by the inverse of the transpose of the transformation matrix
+   let S be the transform for the normal and M be the transform for some point on the surface
+   0 = n . t
+   0 = n^T t
+   to maintain orthogonality the following must be true
+   0 = (n')^T t'
+   0 = (Sn)^T Mt
+   0 = n^T S^T Mt implies S^T M = identity mat
+   this implies
+   S^T = M^(-1)
+   S = (M^-1)^T
+*/
+func (t Transform) ApplyN(n Normal3) Normal3 {
+	x, y, z := n.X, n.Y, n.Z
+	return Normal3{t.mInv[0][0]*x + t.mInv[1][0]*y + t.mInv[2][0]*z,
+		t.mInv[0][1]*x + t.mInv[1][1]*y + t.mInv[2][1]*z,
+		t.mInv[0][2]*x + t.mInv[1][2]*y + t.mInv[2][2]*z}
+}
+
+func (t Transform) ApplyR(r Ray) Ray {
+	o, _ := t.ApplyPE(r.Orig)
+	d := t.ApplyV(r.Dir)
+	tMax := float64(0)
+	return Ray{o, d, tMax, r.Time, r.medium}
+}
+
+func (t Transform) ApplyB(b Bounds3) Bounds3 {
+	ret := Bounds3{pMin: t.ApplyP(Point3{b.pMin.X, b.pMin.Y, b.pMin.Z})}
+	ret = UnionB3P(ret, t.ApplyP(Point3{b.pMax.X, b.pMin.Y, b.pMin.Z}))
+	ret = UnionB3P(ret, t.ApplyP(Point3{b.pMin.X, b.pMax.Y, b.pMin.Z}))
+	ret = UnionB3P(ret, t.ApplyP(Point3{b.pMin.X, b.pMin.Y, b.pMax.Z}))
+	ret = UnionB3P(ret, t.ApplyP(Point3{b.pMin.X, b.pMax.Y, b.pMax.Z}))
+	ret = UnionB3P(ret, t.ApplyP(Point3{b.pMax.X, b.pMax.Y, b.pMin.Z}))
+	ret = UnionB3P(ret, t.ApplyP(Point3{b.pMax.X, b.pMin.Y, b.pMax.Z}))
+	ret = UnionB3P(ret, t.ApplyP(Point3{b.pMax.X, b.pMax.Y, b.pMax.Z}))
+	return ret
 }
 
 func (t Transform) Inverse() Transform {

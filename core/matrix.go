@@ -1,4 +1,4 @@
-package math
+package core
 
 func inRange(i, j int) bool {
 	return i < 4 && j < 4
