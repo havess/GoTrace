@@ -126,6 +126,16 @@ func (t Transform) HasScale() bool {
 	return notOne(x) || notOne(y) || notOne(z)
 }
 
+// SwapsHandedness returns true if the matrix swaps the coordinate system right->left or vice versa
+func (t Transform) SwapsHandedness() bool {
+	// if the determinant of the upper 3x3 submatrix of a transform is negative it swaps the handedness
+	det := t.m[0][0]*(t.m[1][1]*t.m[2][2]-t.m[1][2]*t.m[2][1]) -
+		t.m[0][1]*(t.m[1][0]*t.m[2][2]-t.m[1][2]*t.m[2][0]) +
+		t.m[0][2]*(t.m[1][0]*t.m[2][1]-t.m[1][1]*t.m[2][0])
+
+	return det < 0
+}
+
 // NewTransform returns an identity transform
 func NewTransform() Transform {
 	m := New4x4IDMat()
@@ -262,4 +272,8 @@ func LookAt(pos, look Point3, up Vec3) Transform {
 	_, inv = cameraToWorld.Inverse()
 
 	return Transform{inv, cameraToWorld}
+}
+
+func ConcatTransforms(t0, t1 Transform) Transform {
+	return Transform{MulMat4x4f(&t0.m, &t1.m), MulMat4x4f(&t0.mInv, &t1.mInv)}
 }
