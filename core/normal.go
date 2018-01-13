@@ -74,3 +74,7 @@ func FaceForward(n *Normal3, v Vec3) Normal3 {
 	}
 	return ret
 }
+
+func NormalFromVec3(v Vec3) Normal3 {
+	return Normal3{v.X, v.Y, v.Z}
+}
