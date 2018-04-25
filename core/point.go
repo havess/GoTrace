@@ -6,6 +6,15 @@ type Point3 struct {
 	X, Y, Z float64
 }
 
+func (p Point3) Get(i int) float64 {
+	if i == 0 {
+		return p.X
+	} else if i == 1 {
+		return p.Y
+	}
+	return p.Z
+}
+
 func (p Point3) HasNaN() bool {
 	return math.IsNaN(p.X) || math.IsNaN(p.Y) || math.IsNaN(p.Z)
 }

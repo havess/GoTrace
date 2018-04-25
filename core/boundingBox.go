@@ -99,6 +99,36 @@ func (b Bounds3) BoundingSphere() (Point3, float64) {
 	return center, radius
 }
 
+/*
+TODO: create intersect that takes precomputed reciprocal and vector of 3 booleans
+that are true if the direction along that axis is negative. PBRT says ~15% increase
+in performance when using BVHAccel
+*/
+func (b Bounds3) IntersectP(ray Ray) (bool, float64, float64) {
+	t0 := float64(0)
+	t1 := ray.tMax
+	for i := 0; i < 3; i++ {
+		// cheaper to multiply than divide so compute reciprocal first
+		invRayDir := 1 / ray.Dir.Get(i)
+		tNear := (b.pMin.Get(i) - ray.Orig.Get(i)) * invRayDir
+		tFar := (b.pMax.Get(i) - ray.Orig.Get(i)) * invRayDir
+		if tNear > tFar {
+			tNear, tFar = tFar, tNear
+		}
+		//TODO: update tFar to be more robust
+		if tNear > 0 {
+			t0 = tNear
+		}
+		if tFar < t1 {
+			t1 = tFar
+		}
+		if t0 > t1 {
+			return false, 0, 0
+		}
+	}
+	return true, t0, t1
+}
+
 func NewEmptyBounds3() Bounds3 {
 	ret := Bounds3{}
 	min := float64(math.MinInt32)

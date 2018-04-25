@@ -25,3 +25,15 @@ func Degress(rad float64) float64 {
 func Xor(a, b bool) bool {
 	return (a && !b) || (!a && b)
 }
+
+func Clamp(v, min, max float64) (ret float64) {
+	if min > max {
+		return 0
+	}
+	if v < min {
+		ret = min
+	} else if v > max {
+		ret = max
+	}
+	return ret
+}

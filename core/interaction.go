@@ -30,7 +30,7 @@ type SurfaceInteraction struct {
 	uv         Point2
 	dpdu, dpdv Vec3
 	dndu, dndv Normal3
-	shape      *Shape
+	shape      *ShapeData
 	shading    struct {
 		n, dndu, dndv Normal3
 		dpdu, dpdv    Vec3
@@ -45,7 +45,7 @@ func NewSurfaceInteraction(
 	uv Point2,
 	dpdu, dpdv Vec3,
 	dndu, dndv Normal3,
-	shape *Shape) SurfaceInteraction {
+	shape *ShapeData) SurfaceInteraction {
 	normal := NormalFromVec3(CrossV3(dpdu, dpdv).Normalize())
 	interaction := NewInteraction(p, normal, pError, wo, time, nil)
 	shading := struct {

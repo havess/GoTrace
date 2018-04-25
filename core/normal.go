@@ -6,6 +6,15 @@ type Normal3 struct {
 	X, Y, Z float64
 }
 
+func (n Normal3) Get(i int) float64 {
+	if i == 0 {
+		return n.X
+	} else if i == 1 {
+		return n.Y
+	}
+	return n.Z
+}
+
 func (n Normal3) ToVec3() Vec3 {
 	return Vec3{n.X, n.Y, n.Z}
 }

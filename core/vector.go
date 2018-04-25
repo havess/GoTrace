@@ -7,6 +7,15 @@ type Vec3 struct {
 	X, Y, Z float64
 }
 
+func (v Vec3) Get(i int) float64 {
+	if i == 0 {
+		return v.X
+	} else if i == 1 {
+		return v.Y
+	}
+	return v.Z
+}
+
 func (v Vec3) MagnitudeSq() float64 {
 	return v.X*v.X + v.Y*v.Y + v.Z*v.Z
 }
