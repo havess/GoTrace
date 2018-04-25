@@ -126,7 +126,7 @@ func (t Transform) HasScale() bool {
 	return notOne(x) || notOne(y) || notOne(z)
 }
 
-// SwapsHandedness returns true if the matrix swaps the coordinate system right->left or vice versa
+// SwapsHandedness returns true if the matrix swaps the coordinate system right -> left or vice versa
 func (t Transform) SwapsHandedness() bool {
 	// if the determinant of the upper 3x3 submatrix of a transform is negative it swaps the handedness
 	det := t.m[0][0]*(t.m[1][1]*t.m[2][2]-t.m[1][2]*t.m[2][1]) -

@@ -21,3 +21,7 @@ func Radians(deg float64) float64 {
 func Degress(rad float64) float64 {
 	return (180 / math.Pi) * rad
 }
+
+func Xor(a, b bool) bool {
+	return (a && !b) || (!a && b)
+}
