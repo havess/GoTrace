@@ -37,3 +37,20 @@ func Clamp(v, min, max float64) (ret float64) {
 	}
 	return ret
 }
+
+func Quadratic(a, b, c float64) (bool, float64, float64) {
+	disc := b*b - 4*a*c
+	if disc < 0 {
+		return false, 0, 0
+	}
+	root := math.Sqrt(disc)
+	q := -0.5 * (b + root)
+	if b < 0 {
+		q = -0.5 * (b - root)
+	}
+	t0, t1 := q/a, c/q
+	if t1 < t0 {
+		t0, t1 = t1, t0
+	}
+	return true, t0, t1
+}
