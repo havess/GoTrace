@@ -86,23 +86,78 @@ func (self Sphere) Intersect(r Ray, testAlphaTexture bool) (bool, float64, Surfa
 	}
 
 	// Compute sphere hit position and phi
-	pHit = ray.GetPointForT(tShapeHit)
-	// TODO: refine sphere intersection point
+	getPosAndPhi := func(tsh float64) (Point3, float64) {
+		p := ray.GetPointForT(tsh)
+		// TODO: refine sphere intersection point
+		if p.X == 0 && p.Y == 0 {
+			p.Z = 1e-5 * radius
+		}
+		thisPhi := math.Atan2(p.Y, p.X)
+		if phi < 0 {
+			phi += 2 * math.Pi
+		}
+		return p, thisPhi
+	}
 
-	// Test sphere intersection against clipping parameters
+	pHit, phi = getPosAndPhi(tShapeHit)
+
+	// Test sphere intersection against clipping parameters, careful that z range
+	// doesnt lie inside of sphere
+	if (self.zMin > -radius && pHit.Z < self.zMin) ||
+		(self.zMax < radius && pHit.Z > self.zMax) ||
+		phi > self.phiMax {
+
+		if tShapeHit == t1 || t1 > ray.tMax {
+			return false, 0, SurfaceInteraction{}
+		}
+		tShapeHit = t1
+		pHit, phi = getPosAndPhi(tShapeHit)
+		if (self.zMin > -radius && pHit.Z < self.zMin) ||
+			(self.zMax < radius && pHit.Z > self.zMax) ||
+			phi > self.phiMax {
+			return false, 0, SurfaceInteraction{}
+		}
+	}
 
 	// Find parametric representation of sphere hit
+	u := phi / self.phiMax
+	theta := math.Acos(Clamp(pHit.Z/radius, -1, 1))
+	v := (theta - self.thetaMin) / (self.thetaMax - self.thetaMin)
+	zRadius := math.Sqrt(pHit.X*pHit.X + pHit.Y*pHit.Y)
+	invZRadius := 1 / zRadius
+	cosPhi := pHit.X * invZRadius
+	sinPhi := pHit.Y * invZRadius
+	dpdu := Vec3{-self.phiMax * pHit.Y, self.phiMax * pHit.X, 0}
+	dpdv := Vec3{pHit.Z * cosPhi, pHit.Z * sinPhi, -radius * math.Sin(theta)}.Multiply(self.thetaMax - self.thetaMin)
+	//Weingarten eqns for dndu and dndv
+	d2Pduu := Vec3{pHit.X, pHit.Y, 0}.Multiply(-self.phiMax * self.phiMax)
+	d2Pduv := Vec3{-sinPhi, cosPhi, 0}.Multiply((self.thetaMax - self.thetaMin) * pHit.Z * self.phiMax)
+	d2Pdvv := Vec3{pHit.X, pHit.Y, pHit.Z}.Multiply((self.thetaMax - self.thetaMin) * -(self.thetaMax - self.thetaMin))
+
+	E := DotV3(dpdu, dpdu)
+	F := DotV3(dpdu, dpdv)
+	G := DotV3(dpdv, dpdv)
+	N := CrossV3(dpdu, dpdv).Normalize()
+	e := DotV3(N, d2Pduu)
+	f := DotV3(N, d2Pduv)
+	g := DotV3(N, d2Pdvv)
+
+	invEGF2 := 1 / (E*G - F*F)
+	dndu := NormalFromVec3(dpdu.Multiply((f*F - e*G) * invEGF2).Add(dpdv.Multiply((e*F - f*E) * invEGF2)))
+	dndv := NormalFromVec3(dpdu.Multiply((g*F - f*G) * invEGF2).Add(dpdv.Multiply((f*F - g*E) * invEGF2)))
 
 	// TODO: Compute error bounds for sphere intersection
 
 	// Initialize surface interaction for parametric information
+	si := NewSurfaceInteraction(pHit, Vec3{}, ray.Dir.Inverse(), ray.Time, Point2{u, v}, dpdu, dpdv, dndu, dndv, &self.shape)
+	si = self.shape.ObjectToWorld.ApplySI(si)
 
 	// update thit for quadratic intersection
-
+	return true, tShapeHit, si
 }
 func (self Sphere) IntersectP(ray Ray, testAlphaTexture bool) bool {
 	return intersectP(self, ray, testAlphaTexture)
 }
 func (self Sphere) Area() float64 {
-
+	return self.phiMax * self.radius * (self.zMax - self.zMin)
 }

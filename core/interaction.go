@@ -41,7 +41,6 @@ func NewSurfaceInteraction(
 	p Point3,
 	pError, wo Vec3,
 	time float64,
-	med media.MediumInterface,
 	uv Point2,
 	dpdu, dpdv Vec3,
 	dndu, dndv Normal3,

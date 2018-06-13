@@ -101,6 +101,19 @@ func (t Transform) ApplyB(b Bounds3) Bounds3 {
 	return ret
 }
 
+func (t Transform) ApplySI(si SurfaceInteraction) SurfaceInteraction {
+	ret := SurfaceInteraction{}
+	ret.dndu = t.ApplyN(si.dndu)
+	ret.dndv = t.ApplyN(si.dndv)
+	ret.dpdu = t.ApplyV(si.dpdu)
+	ret.dpdv = t.ApplyV(si.dpdv)
+	ret.shading.dndu = t.ApplyN(si.shading.dndu)
+	ret.shading.dndv = t.ApplyN(si.shading.dndv)
+	ret.shading.dpdu = t.ApplyV(si.shading.dpdu)
+	ret.shading.dpdv = t.ApplyV(si.shading.dpdv)
+	return ret
+}
+
 func (t Transform) Inverse() Transform {
 	return Transform{t.mInv, t.m}
 }
