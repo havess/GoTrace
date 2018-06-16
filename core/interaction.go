@@ -31,6 +31,7 @@ type SurfaceInteraction struct {
 	dpdu, dpdv Vec3
 	dndu, dndv Normal3
 	shape      *ShapeData
+	primitive  Primitive
 	shading    struct {
 		n, dndu, dndv Normal3
 		dpdu, dpdv    Vec3
@@ -56,7 +57,7 @@ func NewSurfaceInteraction(
 		normal = normal.Multiply(-1)
 		shading.n = shading.n.Multiply(-1)
 	}
-	return SurfaceInteraction{interaction, uv, dpdu, dpdv, dndu, dndv, shape, shading}
+	return SurfaceInteraction{interaction, uv, dpdu, dpdv, dndu, dndv, shape, nil, shading}
 }
 
 func (si SurfaceInteraction) SetShadingGeometry(dpdus, dpdvs Vec3,
